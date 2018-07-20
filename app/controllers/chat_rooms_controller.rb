@@ -1,5 +1,5 @@
 class ChatRoomsController < ApplicationController
-  before_action :set_chat_room, only: [:show, :edit, :update, :destroy, :join, :chat]
+  before_action :set_chat_room, only: [:show, :edit, :update, :destroy, :join, :chat, :exit]
 
   # GET /chat_rooms
   # GET /chat_rooms.json
@@ -77,6 +77,18 @@ class ChatRoomsController < ApplicationController
     @chat_room.chats.create(user_id: current_user.id, message: params[:message])
   end
 
+  def exit
+
+    if current_user.email == @chat_room.master_id
+      #master인 경우 방을 없애 버린다
+      @chat_room.destroy
+    else
+      # Object return
+      admission = Admission.find_by(user_id: current_user.id, chat_room_id: @chat_room.id)
+      admission.destroy
+    end
+
+  end
 
   private
     # Use callbacks to share common setup or constraints between actions.

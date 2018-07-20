@@ -39,10 +39,18 @@
 
   var channel = pusher.subscribe('chat_room');
   channel.bind('create', function(data) {
-  console.log("방이 만들어졌냐?");
+    // 방 리스트 추가
   });
-  
+
   channel.bind('join', function(data) {
-  console.log("유저가 참가했냐?");
+    // 인원 추가
+  });
+
+  channel.bind('exit', function(data){
+    // 인원 감소
+  });
+
+  channel.bind('destroy', function(data){
+    // 방 리스트 삭제
   });
 </script>

@@ -16,17 +16,19 @@
 </p>
 
 <hr />
+
 <p class="user-list"><strong>참여 인원</strong></p>
 <% @chat_room.users.each do |user| %>
-  <p><%= user.email %></p>
+  <!-- 방에서 나간 경우에는 나간 것을 알리기 위해 **선택자**를 unique하게 준다-->
+  <p id="user-<%=user.id%>"><%= user.email %></p>
 <% end %>
 
 <!-- 채팅 내용 보여주기 -->
-<% if current_user.join_room?@chat_room %>
+<% if current_user.join_room? @chat_room %>
   <!-- 선택자 만들기 (js의 기본)-->
   <div class = "chat-list">
   <% @chat_room.chats.each do |chat| %>
-    <p><%= chat.user.email%> : <%= chats.message %></p>
+    <p><%= chat.user.email%> : <%=chat.message %></p>
   <% end %>
   </div>
   <hr />
@@ -36,7 +38,12 @@
   <% end %>
 <% end %>
 
-<%= link_to '참가하기', join_chat_room_path(@chat_room), remote: true, method: 'post'%>
+<% unless current_user.join_room? @chat_room %>
+<!-- routes.rb와 연결이 된다 -->
+  <%= link_to '참가하기', join_chat_room_path(@chat_room), remote: true, method: 'post'%> |
+<% else %>
+  <%= link_to '나가기', exit_chat_room_path(@chat_room),remote: true, method: 'delete', data: {confirm: '방 나갈거니?'} %> |
+<% end %>
 <%= link_to 'Edit', edit_chat_room_path(@chat_room) %> |
 <%= link_to 'Back', chat_rooms_path %>
 
@@ -47,9 +54,23 @@ $(document).on('ready', function(){
     // ``는 무적의 key
     $('.user-list').append(`<p>${data.email}</p>`)
   }
+
   function user_chat(data){
     $('.chat-list').append(`<p>${data.email} : ${data.message}</p>`)
   }
+
+  function user_exit(data){
+    $('.chat-list').append(`<p>${data.email}님이 나가셨습니다.</p>`)
+    // message(html코드)가 사라지게 된다.
+    $(`#user-${data.user_id}`).remove();
+  }
+
+  function room_destroy(data){
+    // 채널을 다 보고 있는 사람들에게 전부 root로 보내기
+    alert('방장이 나가버림')
+    location.href = "/"
+  }
+
   var pusher = new Pusher("<%=ENV["pusher_key"]%>", {
   cluster: '<%=ENV["pusher_cluster"]%>',
   encrypted: true
@@ -65,10 +86,18 @@ $(document).on('ready', function(){
     // 지금 들어온 유저를 유저 참여 목록에 추가(호출)
     user_join(data);
   });
-  
+
   channel.bind('chat', function(data) {
     // 지금 들어온 유저를 유저 참여 목록에 추가(호출)
     user_chat(data);
+  });
+
+  channel.bind('exit', function(data){
+    user_exit(data);
+  });
+
+  channel.bind('destroy', function(data){
+    room_destroy(data);
   });
 });
 </script>

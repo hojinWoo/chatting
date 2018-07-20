@@ -4,7 +4,8 @@ Rails.application.routes.draw do
     member do
       # post 'chat_rooms/:id/join' => 'chat_rooms#join'
       post '/join' => 'chat_rooms#join'
-      post '/chat' => 'chat_romms#chat'
+      post '/chat' => 'chat_rooms#chat'
+      delete '/exit' => 'chat_rooms#exit'
     end
   end
   devise_for :users
