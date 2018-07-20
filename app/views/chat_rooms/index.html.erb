@@ -1,0 +1,48 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Chat Rooms</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>방제</th>
+      <th>방장</th>
+      <th>인원</th>
+      <!-- <th>Admission count</th> -->
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody class="chat_room_list">
+    <% @chat_rooms.each do |chat_room| %>
+      <tr>
+        <td><%= chat_room.title %></td>
+        <td><%= chat_room.master_id %></td>
+        <td><%= chat_room.admissions_count %>/<%= chat_room.max_count %></td>
+        <td><%= link_to 'Show', chat_room %></td>
+        <td><%= link_to 'Edit', edit_chat_room_path(chat_room) %></td>
+        <td><%= link_to 'Destroy', chat_room, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Chat room', new_chat_room_path %>
+
+<script>
+  var pusher = new Pusher("<%=ENV["pusher_key"]%>", {
+  cluster: '<%=ENV["pusher_cluster"]%>',
+  encrypted: true
+  });
+
+  var channel = pusher.subscribe('chat_room');
+  channel.bind('create', function(data) {
+  console.log("방이 만들어졌냐?");
+  });
+  
+  channel.bind('join', function(data) {
+  console.log("유저가 참가했냐?");
+  });
+</script>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chats</title>
+  <%= stylesheet_link_tag    'application', media: 'all' %>
+  <%= javascript_include_tag 'application' %>
+  <%= csrf_meta_tags %>
+  <script src="https://js.pusher.com/4.1/pusher.min.js"></script>
+</head>
+<body>
+<% if user_signed_in? %>
+  <p><%= current_user.email %></p>
+  <%= link_to '로그아웃', destroy_user_session_path, method: :delete %>
+<% else %>
+  <%= link_to '로그인', new_user_session_path %>
+  <%= link_to '회원가입', new_user_registration_path %>
+<% end %>
+<%= yield %>
+
+</body>
+</html>

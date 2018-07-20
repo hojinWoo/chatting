@@ -1,0 +1,74 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>방제목:</strong>
+  <%= @chat_room.title %>
+</p>
+
+<p>
+  <strong>방장:</strong>
+  <%= @chat_room.master_id %>
+</p>
+
+<p>
+  <strong>인원:</strong>
+  <%= @chat_room.admissions_count %>/<%= @chat_room.max_count %>
+</p>
+
+<hr />
+<p class="user-list"><strong>참여 인원</strong></p>
+<% @chat_room.users.each do |user| %>
+  <p><%= user.email %></p>
+<% end %>
+
+<!-- 채팅 내용 보여주기 -->
+<% if current_user.join_room?@chat_room %>
+  <!-- 선택자 만들기 (js의 기본)-->
+  <div class = "chat-list">
+  <% @chat_room.chats.each do |chat| %>
+    <p><%= chat.user.email%> : <%= chats.message %></p>
+  <% end %>
+  </div>
+  <hr />
+  <!-- ajax : remote true -->
+  <%= form_tag(chat_chat_room_path(@chat_room), remote: true) do %>
+    <%= text_field_tag :message %>
+  <% end %>
+<% end %>
+
+<%= link_to '참가하기', join_chat_room_path(@chat_room), remote: true, method: 'post'%>
+<%= link_to 'Edit', edit_chat_room_path(@chat_room) %> |
+<%= link_to 'Back', chat_rooms_path %>
+
+<script>
+$(document).on('ready', function(){
+  function user_join(data){
+    //ajax로 append하기
+    // ``는 무적의 key
+    $('.user-list').append(`<p>${data.email}</p>`)
+  }
+  function user_chat(data){
+    $('.chat-list').append(`<p>${data.email} : ${data.message}</p>`)
+  }
+  var pusher = new Pusher("<%=ENV["pusher_key"]%>", {
+  cluster: '<%=ENV["pusher_cluster"]%>',
+  encrypted: true
+  });
+
+  // 특정 방마다 있는 채널을 만들고 해당 방에만 trigger를 보내기 위해서
+  var channel = pusher.subscribe('chat_room_<%= @chat_room.id%>');
+  channel.bind('create', function(data) {
+  console.log("방이 만들어졌냐?");
+  });
+
+  channel.bind('join', function(data) {
+    // 지금 들어온 유저를 유저 참여 목록에 추가(호출)
+    user_join(data);
+  });
+  
+  channel.bind('chat', function(data) {
+    // 지금 들어온 유저를 유저 참여 목록에 추가(호출)
+    user_chat(data);
+  });
+});
+</script>
